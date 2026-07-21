@@ -25,7 +25,7 @@ function validateQuestion(q: unknown, index: number): string[] {
   }
 
   const type = q.type || 'multiple_choice';
-  if (!['multiple_choice', 'true_false', 'assertion'].includes(type as string)) {
+  if (!['multiple_choice', 'true_false', 'assertion', 'multiple_answer'].includes(type as string)) {
     errors.push(`${prefix}: tipo inválido "${type}"`);
   }
 
@@ -101,6 +101,9 @@ export function validateQuiz(data: unknown): ValidationResult {
       }
       if (type === 'true_false') {
         return { ...base, type: 'true_false' as const };
+      }
+      if (type === 'multiple_answer') {
+        return { ...base, type: 'multiple_answer' as const };
       }
       return { ...base, type: 'multiple_choice' as const };
     }),

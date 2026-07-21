@@ -57,6 +57,26 @@
   color: white;
 }
 
+.checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.selected .checkbox {
+  color: var(--color-accent);
+}
+
+.correct .checkbox {
+  color: var(--color-success, #16a34a);
+}
+
+.incorrect .checkbox {
+  color: var(--color-danger, #dc2626);
+}
+
 .correct .letter {
   background-color: var(--color-success);
   color: white;

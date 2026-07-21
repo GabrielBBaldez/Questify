@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChevronUp, ChevronDown, Trash2, Plus, X, Hash } from 'lucide-react';
 import type { Question, QuestionType, Alternative, Assertion } from '../../types/quiz';
+import { parseAnswerSet, joinAnswerSet } from '../../utils/answerSet';
 import { ImageUpload } from '../ImageUpload/ImageUpload';
 import styles from './QuestionForm.module.css';
 
@@ -88,10 +89,27 @@ export function QuestionForm({ question, index, total, onChange, onRemove, onMov
     const alts = question.alternatives.filter((_, i) => i !== altIndex);
     const removed = question.alternatives[altIndex];
     let correctAnswer = question.correctAnswer;
-    if (correctAnswer === removed.id) {
+    if (question.type === 'multiple_answer') {
+      const set = parseAnswerSet(correctAnswer).filter((id) => id !== removed.id);
+      correctAnswer = joinAnswerSet(set.length ? set : [alts[0].id]);
+    } else if (correctAnswer === removed.id) {
       correctAnswer = alts[0].id;
     }
     onChange({ ...question, alternatives: alts, correctAnswer } as Question);
+  };
+
+  // Multiple-answer: toggle an alternative in/out of the correct set (keeps at least one)
+  const isCorrectAlt = (altId: string) => parseAnswerSet(question.correctAnswer).includes(altId);
+
+  const toggleCorrectAlt = (altId: string) => {
+    const set = new Set(parseAnswerSet(question.correctAnswer));
+    if (set.has(altId)) {
+      if (set.size <= 1) return;
+      set.delete(altId);
+    } else {
+      set.add(altId);
+    }
+    updateField('correctAnswer', joinAnswerSet([...set]));
   };
 
   // Tags
@@ -162,6 +180,13 @@ export function QuestionForm({ question, index, total, onChange, onRemove, onMov
           onClick={() => handleTypeChange('multiple_choice')}
         >
           Múltipla Escolha
+        </button>
+        <button
+          type="button"
+          className={`${styles.typeOption} ${question.type === 'multiple_answer' ? styles.typeOptionActive : ''}`}
+          onClick={() => handleTypeChange('multiple_answer')}
+        >
+          Múltipla Resposta
         </button>
         <button
           type="button"
@@ -255,7 +280,7 @@ export function QuestionForm({ question, index, total, onChange, onRemove, onMov
         {question.alternatives.map((alt, altIndex) => (
           <div key={alt.id} className={styles.altBlock}>
             <div className={styles.alternativeRow}>
-              <span className={`${styles.altLetter} ${question.correctAnswer === alt.id ? styles.altLetterCorrect : ''}`}>
+              <span className={`${styles.altLetter} ${(question.type === 'multiple_answer' ? isCorrectAlt(alt.id) : question.correctAnswer === alt.id) ? styles.altLetterCorrect : ''}`}>
                 {alt.id}
               </span>
               {question.type === 'true_false' ? (
@@ -269,12 +294,20 @@ export function QuestionForm({ question, index, total, onChange, onRemove, onMov
                 />
               )}
               <label className={styles.radioLabel}>
-                <input
-                  type="radio"
-                  name={`correct-${question.id}`}
-                  checked={question.correctAnswer === alt.id}
-                  onChange={() => updateField('correctAnswer', alt.id)}
-                />
+                {question.type === 'multiple_answer' ? (
+                  <input
+                    type="checkbox"
+                    checked={isCorrectAlt(alt.id)}
+                    onChange={() => toggleCorrectAlt(alt.id)}
+                  />
+                ) : (
+                  <input
+                    type="radio"
+                    name={`correct-${question.id}`}
+                    checked={question.correctAnswer === alt.id}
+                    onChange={() => updateField('correctAnswer', alt.id)}
+                  />
+                )}
                 Correta
               </label>
               {question.type !== 'true_false' && question.alternatives.length > 2 && (
@@ -287,7 +320,7 @@ export function QuestionForm({ question, index, total, onChange, onRemove, onMov
               className={styles.altExplanation}
               value={alt.explanation || ''}
               onChange={(e) => updateAlternative(altIndex, 'explanation', e.target.value)}
-              placeholder={`Por que ${alt.id} está ${question.correctAnswer === alt.id ? 'correta' : 'errada'}... (opcional)`}
+              placeholder={`Por que ${alt.id} está ${(question.type === 'multiple_answer' ? isCorrectAlt(alt.id) : question.correctAnswer === alt.id) ? 'correta' : 'errada'}... (opcional)`}
             />
           </div>
         ))}

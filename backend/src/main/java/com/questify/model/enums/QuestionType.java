@@ -6,7 +6,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum QuestionType {
     MULTIPLE_CHOICE("multiple_choice"),
     TRUE_FALSE("true_false"),
-    ASSERTION("assertion");
+    ASSERTION("assertion"),
+    MULTIPLE_ANSWER("multiple_answer");
 
     private final String value;
 

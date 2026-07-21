@@ -3,6 +3,7 @@ import { Play, Pencil, Download, Trash2, FileText, Calendar, BookOpen, RotateCcw
 import type { Quiz } from '../../types/quiz';
 import { useResultsStorage } from '../../hooks/useResultsStorage';
 import { SKIPPED_ANSWER } from '../../constants/quiz';
+import { answersMatch } from '../../utils/answerSet';
 import { exportQuizAsJson } from '../../utils/jsonExport';
 import styles from './QuizCard.module.css';
 
@@ -24,7 +25,7 @@ export function QuizCard({ quiz, onDelete }: QuizCardProps) {
   results.forEach((r) => {
     quiz.questions.forEach((q) => {
       const answer = r.answers[q.id];
-      if (answer && answer !== SKIPPED_ANSWER && answer !== q.correctAnswer) {
+      if (answer && answer !== SKIPPED_ANSWER && !answersMatch(answer, q.correctAnswer)) {
         wrongQuestionIds.add(q.id);
       }
     });

@@ -4,12 +4,14 @@ import { Search, Home, Check, X, Hash, Star } from 'lucide-react';
 import { useQuizStorage } from '../../hooks/useQuizStorage';
 import { useFavoritesStorage } from '../../hooks/useFavoritesStorage';
 import type { AssertionQuestion } from '../../types/quiz';
+import { parseAnswerSet } from '../../utils/answerSet';
 import styles from './ConsultPage.module.css';
 
 const TYPE_LABELS: Record<string, string> = {
   multiple_choice: 'Múltipla Escolha',
   true_false: 'V ou F',
   assertion: 'Assertivas',
+  multiple_answer: 'Múltipla Resposta',
 };
 
 export function ConsultPage() {
@@ -140,20 +142,23 @@ export function ConsultPage() {
             )}
 
             <div className={styles.altList}>
-              {q.alternatives.map((alt) => (
+              {q.alternatives.map((alt) => {
+                const isAltCorrect = parseAnswerSet(q.correctAnswer).includes(alt.id);
+                return (
                 <div key={alt.id}>
                   <div
-                    className={`${styles.altItem} ${alt.id === q.correctAnswer ? styles.altCorrect : styles.altNormal}`}
+                    className={`${styles.altItem} ${isAltCorrect ? styles.altCorrect : styles.altNormal}`}
                   >
                     <span className={styles.altLetter}>{alt.id})</span>
                     <span>{alt.text}</span>
-                    {alt.id === q.correctAnswer && <Check size={14} />}
+                    {isAltCorrect && <Check size={14} />}
                   </div>
                   {alt.explanation && (
                     <div className={styles.altExplanation}>{alt.explanation}</div>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
 
             {q.explanation && (

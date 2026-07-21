@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, CheckCircle, SkipForward, Star } from 'lucide-react';
 import type { Question, QuizMode, AssertionQuestion } from '../../types/quiz';
 import { SKIPPED_ANSWER } from '../../constants/quiz';
+import { parseAnswerSet, answersMatch } from '../../utils/answerSet';
 import { AlternativeButton } from '../AlternativeButton/AlternativeButton';
 import styles from './QuestionDisplay.module.css';
 
@@ -35,13 +36,20 @@ export function QuestionDisplay({
   isFavorite,
   onToggleFavorite,
 }: QuestionDisplayProps) {
+  const isMulti = question.type === 'multiple_answer';
+  const correctSet = parseAnswerSet(question.correctAnswer);
+  const requiredCount = Math.max(1, correctSet.length);
+
   const isSkipped = selectedAnswer === SKIPPED_ANSWER;
-  const hasAnswered = selectedAnswer !== null && !isSkipped;
+  const selectedSet = isSkipped || !selectedAnswer ? [] : parseAnswerSet(selectedAnswer);
+  // A question is considered "answered" once the user has picked the required
+  // number of alternatives (1 for single-answer, N for multiple_answer).
+  const hasAnswered = !isSkipped && selectedSet.length >= requiredCount;
   const showFeedback = mode !== 'simulado' && hasAnswered;
   const showExplanation = mode === 'revisao' && hasAnswered;
   const isDisabled = mode !== 'simulado' && (hasAnswered || isSkipped);
-  const isCorrect = hasAnswered && selectedAnswer === question.correctAnswer;
-  const canSkip = !hasAnswered;
+  const isCorrect = hasAnswered && answersMatch(selectedAnswer, question.correctAnswer);
+  const canSkip = selectedSet.length === 0 && !isSkipped;
 
   return (
     <div className={styles.container}>
@@ -59,6 +67,12 @@ export function QuestionDisplay({
           </button>
         )}
       </div>
+
+      {isMulti && (
+        <p className={styles.multiHint}>
+          Selecione {requiredCount} alternativas
+        </p>
+      )}
 
       {question.image && (
         <img src={question.image} alt="Imagem da questão" className={styles.questionImage} />
@@ -80,8 +94,9 @@ export function QuestionDisplay({
           <AlternativeButton
             key={alt.id}
             alternative={alt}
-            isSelected={!isSkipped && selectedAnswer === alt.id}
-            isCorrect={alt.id === question.correctAnswer}
+            isSelected={selectedSet.includes(alt.id)}
+            isCorrect={correctSet.includes(alt.id)}
+            multiSelect={isMulti}
             showFeedback={showFeedback}
             showExplanation={showExplanation}
             disabled={isDisabled}
@@ -92,7 +107,9 @@ export function QuestionDisplay({
 
       {showFeedback && (
         <div className={isCorrect ? styles.feedbackCorrect : styles.feedbackWrong}>
-          {isCorrect ? 'Resposta correta!' : `Resposta errada. A correta era: ${question.correctAnswer}`}
+          {isCorrect
+            ? 'Resposta correta!'
+            : `Resposta errada. ${correctSet.length > 1 ? 'As corretas eram' : 'A correta era'}: ${correctSet.join(', ')}`}
         </div>
       )}
 

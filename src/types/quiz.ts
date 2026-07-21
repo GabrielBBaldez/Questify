@@ -1,4 +1,4 @@
-export type QuestionType = 'multiple_choice' | 'true_false' | 'assertion';
+export type QuestionType = 'multiple_choice' | 'true_false' | 'assertion' | 'multiple_answer';
 export type QuizMode = 'simulado' | 'estudo' | 'revisao';
 
 export interface Alternative {
@@ -28,6 +28,15 @@ export interface MultipleChoiceQuestion extends BaseQuestion {
   type: 'multiple_choice';
 }
 
+/**
+ * A question with more than one correct alternative. `correctAnswer` holds the
+ * correct ids as a sorted, comma-joined string (e.g. "A,C"). Scoring is
+ * all-or-nothing: the user must select exactly the correct set.
+ */
+export interface MultipleAnswerQuestion extends BaseQuestion {
+  type: 'multiple_answer';
+}
+
 export interface TrueFalseQuestion extends BaseQuestion {
   type: 'true_false';
 }
@@ -37,7 +46,11 @@ export interface AssertionQuestion extends BaseQuestion {
   assertions: Assertion[];
 }
 
-export type Question = MultipleChoiceQuestion | TrueFalseQuestion | AssertionQuestion;
+export type Question =
+  | MultipleChoiceQuestion
+  | TrueFalseQuestion
+  | AssertionQuestion
+  | MultipleAnswerQuestion;
 
 export interface Quiz {
   id: string;

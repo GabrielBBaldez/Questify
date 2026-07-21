@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ChevronDown, Check, X, SkipForward, Star } from 'lucide-react';
 import type { Question, AssertionQuestion } from '../../types/quiz';
 import { SKIPPED_ANSWER } from '../../constants/quiz';
+import { parseAnswerSet, answersMatch } from '../../utils/answerSet';
 import styles from './QuestionReview.module.css';
 
 interface QuestionReviewProps {
@@ -16,7 +17,9 @@ export function QuestionReview({ question, questionNumber, userAnswer, isFavorit
   const [open, setOpen] = useState(false);
   const isSkipped = userAnswer === SKIPPED_ANSWER;
   const isUnanswered = userAnswer === undefined;
-  const isCorrect = !isSkipped && !isUnanswered && userAnswer === question.correctAnswer;
+  const isCorrect = !isSkipped && !isUnanswered && answersMatch(userAnswer, question.correctAnswer);
+  const correctSet = parseAnswerSet(question.correctAnswer);
+  const userSet = isSkipped || isUnanswered ? [] : parseAnswerSet(userAnswer);
 
   const getBadge = () => {
     if (isSkipped) {
@@ -95,10 +98,12 @@ export function QuestionReview({ question, questionNumber, userAnswer, isFavorit
 
           <div className={styles.altList}>
             {question.alternatives.map((alt) => {
+              const isAltCorrect = correctSet.includes(alt.id);
+              const isUserWrongPick = userSet.includes(alt.id) && !isAltCorrect;
               let altClass = styles.altNeutral;
-              if (alt.id === question.correctAnswer) {
+              if (isAltCorrect) {
                 altClass = styles.altCorrect;
-              } else if (!isSkipped && !isUnanswered && alt.id === userAnswer && !isCorrect) {
+              } else if (isUserWrongPick) {
                 altClass = styles.altWrong;
               }
 
@@ -107,8 +112,8 @@ export function QuestionReview({ question, questionNumber, userAnswer, isFavorit
                   <div className={`${styles.altItem} ${altClass}`}>
                     <span className={styles.altLetter}>{alt.id})</span>
                     <span>{alt.text}</span>
-                    {alt.id === question.correctAnswer && <Check size={14} />}
-                    {!isSkipped && !isUnanswered && alt.id === userAnswer && !isCorrect && <X size={14} />}
+                    {isAltCorrect && <Check size={14} />}
+                    {isUserWrongPick && <X size={14} />}
                   </div>
                   {alt.explanation && (
                     <div className={styles.altExplanation}>{alt.explanation}</div>

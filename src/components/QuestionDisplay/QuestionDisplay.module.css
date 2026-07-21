@@ -16,6 +16,17 @@
   flex: 1;
 }
 
+.multiHint {
+  display: inline-block;
+  margin-bottom: var(--spacing-md);
+  padding: 2px 10px;
+  border-radius: var(--radius-sm, 6px);
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
 .favoriteBtn {
   flex-shrink: 0;
   background: none;

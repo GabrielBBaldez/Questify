@@ -12,6 +12,7 @@ import { ProgressBar } from '../../components/ProgressBar/ProgressBar';
 import { shuffle } from '../../utils/shuffle';
 import { generateId } from '../../utils/generateId';
 import { SKIPPED_ANSWER } from '../../constants/quiz';
+import { parseAnswerSet, joinAnswerSet, answersMatch } from '../../utils/answerSet';
 import type { QuizMode, TrainSettings as TrainSettingsType, Question, QuizResult } from '../../types/quiz';
 import styles from './QuizPlayerPage.module.css';
 
@@ -23,18 +24,18 @@ function shuffleAlternatives(question: Question): Question {
   if (question.type === 'true_false') return question;
 
   const shuffled = shuffle(question.alternatives);
+  const correctSet = new Set(parseAnswerSet(question.correctAnswer));
 
-  // Find which shuffled position now holds the original correct answer
-  const correctIndex = shuffled.findIndex((alt) => alt.id === question.correctAnswer);
-  const newCorrectId = LETTERS[correctIndex] || shuffled[correctIndex].id;
+  // Re-label alternatives: A, B, C, D... in the new shuffled order, and map
+  // each original correct id to its new label (handles single and multi answers)
+  const newCorrect: string[] = [];
+  const relabeled = shuffled.map((alt, i) => {
+    const newId = LETTERS[i] || alt.id;
+    if (correctSet.has(alt.id)) newCorrect.push(newId);
+    return { ...alt, id: newId };
+  });
 
-  // Re-label alternatives: A, B, C, D... in the new shuffled order
-  const relabeled = shuffled.map((alt, i) => ({
-    ...alt,
-    id: LETTERS[i] || alt.id,
-  }));
-
-  return { ...question, alternatives: relabeled, correctAnswer: newCorrectId };
+  return { ...question, alternatives: relabeled, correctAnswer: joinAnswerSet(newCorrect) };
 }
 
 export function QuizPlayerPage() {
@@ -87,7 +88,7 @@ export function QuizPlayerPage() {
       results.forEach((r) => {
         quiz.questions.forEach((q) => {
           const answer = r.answers[q.id];
-          if (answer && answer !== SKIPPED_ANSWER && answer !== q.correctAnswer) {
+          if (answer && answer !== SKIPPED_ANSWER && !answersMatch(answer, q.correctAnswer)) {
             wrongIds.add(q.id);
           }
         });
@@ -120,7 +121,30 @@ export function QuizPlayerPage() {
   };
 
   const handleSelectAnswer = (altId: string) => {
-    const qId = preparedQuestions[currentIndex].id;
+    const question = preparedQuestions[currentIndex];
+    const qId = question.id;
+
+    if (question.type === 'multiple_answer') {
+      setAnswers((prev) => {
+        const current = prev[qId] === SKIPPED_ANSWER ? '' : prev[qId];
+        const set = new Set(parseAnswerSet(current));
+        if (set.has(altId)) {
+          set.delete(altId);
+        } else {
+          set.add(altId);
+        }
+        const joined = joinAnswerSet([...set]);
+        const next = { ...prev };
+        if (joined) {
+          next[qId] = joined;
+        } else {
+          delete next[qId];
+        }
+        return next;
+      });
+      return;
+    }
+
     setAnswers((prev) => {
       if (prev[qId] === altId) {
         const next = { ...prev };
@@ -159,7 +183,7 @@ export function QuizPlayerPage() {
     preparedQuestions.forEach((q) => {
       if (answers[q.id] === SKIPPED_ANSWER) {
         skippedCount++;
-      } else if (answers[q.id] === q.correctAnswer) {
+      } else if (answersMatch(answers[q.id], q.correctAnswer)) {
         correctCount++;
       }
     });
