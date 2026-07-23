@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { Plus } from 'lucide-react';
 import { useQuizStorage } from '../../hooks/useQuizStorage';
@@ -33,6 +33,13 @@ export function CreateQuizPage() {
   const [subject, setSubject] = useState('');
   const [questions, setQuestions] = useState<Question[]>([createBlankQuestion()]);
   const [errors, setErrors] = useState<string[]>([]);
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (errors.length > 0) {
+      errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [errors]);
 
   const isEditing = !!quizId;
 
@@ -132,7 +139,7 @@ export function CreateQuizPage() {
       </div>
 
       {errors.length > 0 && (
-        <div className={styles.errorMsg}>
+        <div className={styles.errorMsg} role="alert" ref={errorRef}>
           {errors.map((err, i) => (
             <div key={i}>{err}</div>
           ))}
@@ -141,8 +148,9 @@ export function CreateQuizPage() {
 
       <div className={styles.metaSection}>
         <div className={styles.fieldFull}>
-          <label className={styles.label}>Título</label>
+          <label htmlFor="quiz-title" className={styles.label}>Título</label>
           <input
+            id="quiz-title"
             className={`${styles.input} ${errors.some((e) => e.includes('Título')) ? styles.inputError : ''}`}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -150,8 +158,9 @@ export function CreateQuizPage() {
           />
         </div>
         <div className={styles.field}>
-          <label className={styles.label}>Matéria</label>
+          <label htmlFor="quiz-subject" className={styles.label}>Matéria</label>
           <input
+            id="quiz-subject"
             className={styles.input}
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
@@ -159,8 +168,9 @@ export function CreateQuizPage() {
           />
         </div>
         <div className={styles.field}>
-          <label className={styles.label}>Descrição (opcional)</label>
+          <label htmlFor="quiz-description" className={styles.label}>Descrição (opcional)</label>
           <textarea
+            id="quiz-description"
             className={styles.textarea}
             value={description}
             onChange={(e) => setDescription(e.target.value)}

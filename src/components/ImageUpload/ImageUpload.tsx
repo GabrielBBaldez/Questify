@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { ImagePlus, X } from 'lucide-react';
 import { fileToBase64 } from '../../utils/imageUtils';
 import styles from './ImageUpload.module.css';
@@ -10,15 +10,18 @@ interface ImageUploadProps {
 
 export function ImageUpload({ image, onChange }: ImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const MAX_SIZE = 500 * 1024; // 500KB
     if (file.size > MAX_SIZE) {
-      alert('Imagem muito grande. Máximo: 500 KB.');
+      setError('Imagem muito grande. Máximo: 500 KB.');
+      if (inputRef.current) inputRef.current.value = '';
       return;
     }
+    setError(null);
     const base64 = await fileToBase64(file);
     onChange(base64);
     if (inputRef.current) inputRef.current.value = '';
@@ -46,6 +49,12 @@ export function ImageUpload({ image, onChange }: ImageUploadProps) {
           <ImagePlus size={18} />
           Adicionar imagem
         </button>
+      )}
+
+      {error && (
+        <p className={styles.error} role="alert">
+          {error}
+        </p>
       )}
     </div>
   );

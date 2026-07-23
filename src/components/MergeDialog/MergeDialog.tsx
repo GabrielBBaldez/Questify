@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { CloudUpload, RefreshCw } from 'lucide-react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import styles from './MergeDialog.module.css';
 
 interface MergeDialogProps {
@@ -12,10 +13,7 @@ interface MergeDialogProps {
 
 export function MergeDialog({ quizCount, resultCount, onMerge, onSkip, error }: MergeDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    dialogRef.current?.focus();
-  }, []);
+  useFocusTrap(dialogRef);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {

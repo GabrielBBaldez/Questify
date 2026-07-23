@@ -29,3 +29,12 @@
   font-size: var(--font-size-sm);
   margin-bottom: var(--spacing-md);
 }
+
+.notice {
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  border-radius: var(--radius-md, 8px);
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-secondary);
+  text-align: center;
+}

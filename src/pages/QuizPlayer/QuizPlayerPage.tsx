@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router';
 import { Home } from 'lucide-react';
 import { useQuizStorage } from '../../hooks/useQuizStorage';
@@ -41,6 +41,18 @@ export function QuizPlayerPage() {
   const [preparedQuestions, setPreparedQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [notice, setNotice] = useState<string | null>(null);
+
+  // Warn before a reload / tab close / external navigation loses an in-progress quiz.
+  useEffect(() => {
+    if (phase !== 'playing') return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [phase]);
 
   if (!quiz) {
     return (
@@ -77,7 +89,7 @@ export function QuizPlayerPage() {
       questions = questions.filter((q) => wrongIds.has(q.id));
 
       if (questions.length === 0) {
-        alert('Nenhum erro para revisar! Você acertou todas.');
+        setNotice('Nenhum erro para revisar! Você acertou todas.');
         return;
       }
     }
@@ -217,6 +229,12 @@ export function QuizPlayerPage() {
 
       {phase === 'mode' && (
         <ModeSelector selected={settings.mode} onSelect={handleModeSelect} />
+      )}
+
+      {notice && (
+        <p className={styles.notice} role="alert">
+          {notice}
+        </p>
       )}
 
       {phase === 'settings' && (

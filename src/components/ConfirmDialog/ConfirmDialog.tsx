@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import styles from './ConfirmDialog.module.css';
 
 interface ConfirmDialogProps {
@@ -11,10 +12,7 @@ interface ConfirmDialogProps {
 
 export function ConfirmDialog({ title, message, confirmLabel = 'Confirmar', onConfirm, onCancel }: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    dialogRef.current?.focus();
-  }, []);
+  useFocusTrap(dialogRef);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {

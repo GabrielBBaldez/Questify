@@ -52,3 +52,9 @@
   font-size: 14px;
   line-height: 1;
 }
+
+.error {
+  margin-top: var(--spacing-xs);
+  color: var(--color-danger, #dc2626);
+  font-size: var(--font-size-sm);
+}
