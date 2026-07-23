@@ -16,6 +16,7 @@ export function Header() {
 
   // Close menu on route change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: react to navigation
     setMenuOpen(false);
   }, [location.pathname]);
 

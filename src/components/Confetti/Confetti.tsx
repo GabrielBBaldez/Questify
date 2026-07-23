@@ -28,7 +28,7 @@ function generatePieces(): Piece[] {
 }
 
 export function Confetti() {
-  const pieces = useMemo(generatePieces, []);
+  const pieces = useMemo(() => generatePieces(), []);
 
   return (
     <div className={styles.container}>

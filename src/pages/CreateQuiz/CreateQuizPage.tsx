@@ -40,6 +40,7 @@ export function CreateQuizPage() {
     if (quizId) {
       const quiz = getQuiz(quizId);
       if (quiz) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- load existing quiz into the form on edit
         setTitle(quiz.title);
         setDescription(quiz.description);
         setSubject(quiz.subject);
@@ -92,8 +93,7 @@ export function CreateQuizPage() {
         });
       }
       if (q.type === 'assertion') {
-        const assertions = (q as any).assertions || [];
-        assertions.forEach((a: any, ai: number) => {
+        q.assertions.forEach((a, ai) => {
           if (!a.text.trim()) errs.push(`Questão ${i + 1}: assertiva ${ai + 1} vazia`);
         });
       }

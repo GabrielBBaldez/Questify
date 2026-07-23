@@ -19,6 +19,7 @@ export function TrainSettings({ settings, totalQuestions, onChange, onStart }: T
   );
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- re-sync local input when props change
     setLimitInput(String(settings.questionLimit ?? totalQuestions));
   }, [settings.questionLimit, totalQuestions]);
 
