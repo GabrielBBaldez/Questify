@@ -5,6 +5,12 @@ export interface Alternative {
   id: string;
   text: string;
   explanation?: string;
+  /**
+   * Set only on alternatives that were shuffled+relabeled at play time. Holds
+   * the original alternative id so a recorded answer can be mapped back to the
+   * original id space (see utils/shuffleQuestion).
+   */
+  originalId?: string;
 }
 
 export interface Assertion {

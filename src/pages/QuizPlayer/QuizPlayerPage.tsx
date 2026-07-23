@@ -13,30 +13,11 @@ import { shuffle } from '../../utils/shuffle';
 import { generateId } from '../../utils/generateId';
 import { SKIPPED_ANSWER } from '../../constants/quiz';
 import { parseAnswerSet, joinAnswerSet, answersMatch } from '../../utils/answerSet';
+import { shuffleAlternatives, toOriginalAnswer } from '../../utils/shuffleQuestion';
 import type { QuizMode, TrainSettings as TrainSettingsType, Question, QuizResult } from '../../types/quiz';
 import styles from './QuizPlayerPage.module.css';
 
 type Phase = 'mode' | 'settings' | 'playing';
-
-const LETTERS = 'ABCDEFGHIJ';
-
-function shuffleAlternatives(question: Question): Question {
-  if (question.type === 'true_false') return question;
-
-  const shuffled = shuffle(question.alternatives);
-  const correctSet = new Set(parseAnswerSet(question.correctAnswer));
-
-  // Re-label alternatives: A, B, C, D... in the new shuffled order, and map
-  // each original correct id to its new label (handles single and multi answers)
-  const newCorrect: string[] = [];
-  const relabeled = shuffled.map((alt, i) => {
-    const newId = LETTERS[i] || alt.id;
-    if (correctSet.has(alt.id)) newCorrect.push(newId);
-    return { ...alt, id: newId };
-  });
-
-  return { ...question, alternatives: relabeled, correctAnswer: joinAnswerSet(newCorrect) };
-}
 
 export function QuizPlayerPage() {
   const { quizId } = useParams();
@@ -178,33 +159,48 @@ export function QuizPlayerPage() {
   const handleFinish = () => {
     stop();
 
+    // Persist results in the ORIGINAL alternative-id space. When alternatives
+    // were shuffled, answers/ids are relabeled per run; translating back keeps
+    // the saved result comparable to the original quiz (so error review and
+    // wrong-counts stay correct — see utils/shuffleQuestion.toOriginalAnswer).
+    const originalQuestions = preparedQuestions.map(
+      (pq) => quiz.questions.find((q) => q.id === pq.id) ?? pq,
+    );
+    const originalAnswers: Record<string, string> = {};
+    preparedQuestions.forEach((pq) => {
+      const answer = answers[pq.id];
+      if (answer === undefined) return;
+      originalAnswers[pq.id] = answer === SKIPPED_ANSWER ? answer : toOriginalAnswer(pq, answer);
+    });
+
     let correctCount = 0;
     let skippedCount = 0;
-    preparedQuestions.forEach((q) => {
-      if (answers[q.id] === SKIPPED_ANSWER) {
+    originalQuestions.forEach((q) => {
+      const answer = originalAnswers[q.id];
+      if (answer === SKIPPED_ANSWER) {
         skippedCount++;
-      } else if (answersMatch(answers[q.id], q.correctAnswer)) {
+      } else if (answersMatch(answer, q.correctAnswer)) {
         correctCount++;
       }
     });
 
-    const answeredCount = preparedQuestions.length - skippedCount;
+    const answeredCount = originalQuestions.length - skippedCount;
 
     const result: QuizResult = {
       id: generateId(),
       quizId: quiz.id,
       quizTitle: quiz.title,
       mode: settings.mode,
-      answers,
+      answers: originalAnswers,
       correctCount,
       skippedCount,
-      totalQuestions: preparedQuestions.length,
+      totalQuestions: originalQuestions.length,
       percentage: answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0,
       timeTakenSeconds: seconds,
       completedAt: new Date().toISOString(),
     };
 
-    navigate('/results', { state: { result, questions: preparedQuestions } });
+    navigate('/results', { state: { result, questions: originalQuestions } });
   };
 
   const currentQuestion = preparedQuestions[currentIndex];
