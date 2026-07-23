@@ -10,6 +10,7 @@ import { ConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog';
 import { useAuth } from '../../hooks/useAuth';
 import { deleteResultsForQuiz } from '../../services/firestoreSync';
 import { validateQuiz } from '../../utils/quizValidator';
+import { generateId } from '../../utils/generateId';
 import { sampleQuizData } from '../../data/sampleQuiz';
 import type { Quiz } from '../../types/quiz';
 import styles from './HomePage.module.css';
@@ -21,7 +22,10 @@ export function HomePage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const handleImport = (quiz: Quiz) => {
-    addQuiz(quiz);
+    // Avoid id collisions when re-importing an exported quiz (same id):
+    // a clashing id would break React keys and make delete remove both copies.
+    const clash = quizzes.some((q) => q.id === quiz.id);
+    addQuiz(clash ? { ...quiz, id: generateId() } : quiz);
   };
 
   const handleLoadSample = () => {

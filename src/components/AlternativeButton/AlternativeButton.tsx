@@ -41,7 +41,14 @@ export function AlternativeButton({
   }
 
   return (
-    <button className={className} onClick={onClick} disabled={disabled}>
+    <button
+      className={className}
+      onClick={onClick}
+      disabled={disabled}
+      role={multiSelect ? 'checkbox' : undefined}
+      aria-checked={multiSelect ? isSelected : undefined}
+      aria-pressed={multiSelect ? undefined : isSelected}
+    >
       {multiSelect && (
         <span className={styles.checkbox} aria-hidden="true">
           {isSelected ? <CheckSquare size={18} /> : <Square size={18} />}

@@ -40,7 +40,7 @@ export function Header() {
       <nav className={`${styles.nav} ${menuOpen ? styles.navOpen : ''}`} aria-label="Navegação principal">
         <NavLink to="/" className={linkClass} end onClick={handleNavClick}>
           <Home size={18} />
-          <span>Inicio</span>
+          <span>Início</span>
         </NavLink>
         <NavLink to="/create" className={linkClass} onClick={handleNavClick}>
           <PlusCircle size={18} />
@@ -48,7 +48,7 @@ export function Header() {
         </NavLink>
         <NavLink to="/history" className={linkClass} onClick={handleNavClick}>
           <BarChart3 size={18} />
-          <span>Historico</span>
+          <span>Histórico</span>
         </NavLink>
         <NavLink to="/generate" className={linkClass} onClick={handleNavClick}>
           <Sparkles size={18} />

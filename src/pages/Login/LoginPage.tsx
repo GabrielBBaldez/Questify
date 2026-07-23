@@ -7,6 +7,7 @@ import styles from './LoginPage.module.css';
 export function LoginPage() {
   const { user, loading, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!loading && user) {
@@ -14,16 +15,15 @@ export function LoginPage() {
     }
   }, [user, loading, navigate]);
 
+  // All hooks must run before any early return (rules of hooks).
   if (loading) return null;
-
-  const [error, setError] = useState('');
 
   const handleGoogleLogin = async () => {
     setError('');
     try {
       await loginWithGoogle();
-    } catch (err: any) {
-      if (err?.code !== 'auth/popup-closed-by-user') {
+    } catch (err) {
+      if ((err as { code?: string })?.code !== 'auth/popup-closed-by-user') {
         setError('Falha ao fazer login. Tente novamente.');
       }
     }
@@ -62,7 +62,7 @@ export function LoginPage() {
         </Link>
 
         <p className={styles.info}>
-          Ao fazer login, seus quizzes e resultados serao sincronizados
+          Ao fazer login, seus quizzes e resultados serão sincronizados
           automaticamente entre todos os seus dispositivos.
         </p>
       </div>

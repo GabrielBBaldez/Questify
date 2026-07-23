@@ -134,7 +134,7 @@ export function QuestionForm({ question, index, total, onChange, onRemove, onMov
   };
 
   // Assertion helpers
-  const assertions = question.type === 'assertion' ? (question as any).assertions as Assertion[] : [];
+  const assertions: Assertion[] = question.type === 'assertion' ? question.assertions : [];
 
   const updateAssertion = (aIndex: number, field: string, value: unknown) => {
     const updated = assertions.map((a, i) => (i === aIndex ? { ...a, [field]: value } : a));

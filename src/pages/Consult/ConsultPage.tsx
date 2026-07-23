@@ -93,6 +93,10 @@ export function ConsultPage() {
         {search && ` para "${search}"`}
       </p>
 
+      {filteredQuestions.length === 0 && (
+        <p className={styles.emptyResults}>Nenhuma questão encontrada.</p>
+      )}
+
       {filteredQuestions.map((q) => {
         const originalIndex = quiz.questions.indexOf(q);
         return (

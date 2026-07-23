@@ -1,5 +1,6 @@
 import type { Quiz, Question } from '../types/quiz';
 import { generateId } from './generateId';
+import { parseAnswerSet } from './answerSet';
 
 interface ValidationResult {
   valid: boolean;
@@ -42,6 +43,16 @@ function validateQuestion(q: unknown, index: number): string[] {
 
   if (!q.correctAnswer || typeof q.correctAnswer !== 'string') {
     errors.push(`${prefix}: resposta correta obrigatória`);
+  } else if (Array.isArray(q.alternatives)) {
+    // Every id referenced by correctAnswer must exist among the alternatives,
+    // otherwise the question can never be scored correct.
+    const altIds = new Set(
+      q.alternatives.filter(isObject).map((alt) => alt.id),
+    );
+    const missing = parseAnswerSet(q.correctAnswer as string).filter((id) => !altIds.has(id));
+    if (missing.length > 0) {
+      errors.push(`${prefix}: resposta correta "${missing.join(', ')}" não corresponde a nenhuma alternativa`);
+    }
   }
 
   if (type === 'assertion') {

@@ -118,5 +118,8 @@ export async function saveProfile(
   userId: string,
   profile: { displayName: string; email: string; photoURL: string; createdAt: string },
 ): Promise<void> {
-  await setDoc(doc(db, 'users', userId, 'profile'), profile, { merge: true });
+  // Store the profile as fields on the user document. A 3-segment path
+  // (users/{uid}/profile) is a collection reference and makes setDoc throw
+  // "Invalid document reference" — which previously made every merge fail.
+  await setDoc(doc(db, 'users', userId), profile, { merge: true });
 }

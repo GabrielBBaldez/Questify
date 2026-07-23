@@ -6,7 +6,8 @@ export function exportQuizAsJson(quiz: Quiz): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `${quiz.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+  const slug = quiz.title.replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_').replace(/^_|_$/g, '').toLowerCase();
+  link.download = `${slug || `quiz-${quiz.id}`}.json`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

@@ -36,7 +36,7 @@ export function MergeDialog({ quizCount, resultCount, onMerge, onSkip, error }: 
       >
         <h3 id="merge-dialog-title" className={styles.title}>Dados locais encontrados</h3>
         <p className={styles.message}>
-          Voce possui dados salvos neste navegador. Deseja enviar para a nuvem ou comecar do zero com os dados da sua conta?
+          Você possui dados salvos neste navegador. Deseja enviar para a nuvem ou começar do zero com os dados da sua conta?
         </p>
         <div className={styles.counts}>
           <span className={styles.countBadge}>{quizCount} quiz{quizCount !== 1 ? 'zes' : ''}</span>
