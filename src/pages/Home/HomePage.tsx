@@ -21,11 +21,16 @@ export function HomePage() {
   const { user } = useAuth();
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const handleImport = (quiz: Quiz) => {
-    // Avoid id collisions when re-importing an exported quiz (same id):
-    // a clashing id would break React keys and make delete remove both copies.
-    const clash = quizzes.some((q) => q.id === quiz.id);
-    addQuiz(clash ? { ...quiz, id: generateId() } : quiz);
+  const handleImport = (imported: Quiz[]) => {
+    // Avoid id collisions (re-importing an exported quiz, or two files that
+    // share an id): a clash would break React keys and make delete remove both
+    // copies. Dedup against existing quizzes AND within this batch.
+    const usedIds = new Set(quizzes.map((q) => q.id));
+    imported.forEach((quiz) => {
+      const finalQuiz = usedIds.has(quiz.id) ? { ...quiz, id: generateId() } : quiz;
+      usedIds.add(finalQuiz.id);
+      addQuiz(finalQuiz);
+    });
   };
 
   const handleLoadSample = () => {

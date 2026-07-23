@@ -6,7 +6,7 @@ import type { Quiz } from '../../types/quiz';
 import styles from './ImportExport.module.css';
 
 interface ImportButtonProps {
-  onImport: (quiz: Quiz) => void;
+  onImport: (quizzes: Quiz[]) => void;
 }
 
 export function ImportButton({ onImport }: ImportButtonProps) {
@@ -14,26 +14,42 @@ export function ImportButton({ onImport }: ImportButtonProps) {
   const [feedback, setFeedback] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
 
-    try {
-      const data = await readJsonFile(file);
-      const result = validateQuiz(data);
+    const imported: Quiz[] = [];
+    const errors: string[] = [];
 
-      if (!result.valid) {
-        setFeedback({ type: 'error', message: result.errors.join(', ') });
-        return;
+    for (const file of files) {
+      try {
+        const data = await readJsonFile(file);
+        const result = validateQuiz(data);
+        if (result.valid && result.quiz) {
+          imported.push(result.quiz);
+        } else {
+          errors.push(`${file.name}: ${result.errors.join(', ')}`);
+        }
+      } catch {
+        errors.push(`${file.name}: arquivo JSON inválido`);
       }
+    }
 
-      onImport(result.quiz!);
-      setFeedback({ type: 'success', message: `"${result.quiz!.title}" importado com sucesso!` });
-    } catch {
-      setFeedback({ type: 'error', message: 'Erro ao ler arquivo JSON' });
+    if (imported.length > 0) {
+      onImport(imported);
+    }
+
+    if (imported.length > 0) {
+      const ok = `${imported.length} ${imported.length === 1 ? 'banco importado' : 'bancos importados'}`;
+      setFeedback({
+        type: errors.length > 0 ? 'error' : 'success',
+        message: errors.length > 0 ? `${ok} · ${errors.length} com erro: ${errors.join('; ')}` : `${ok} com sucesso!`,
+      });
+    } else {
+      setFeedback({ type: 'error', message: errors.join('; ') || 'Nenhum banco importado' });
     }
 
     if (inputRef.current) inputRef.current.value = '';
-    setTimeout(() => setFeedback(null), 4000);
+    setTimeout(() => setFeedback(null), 6000);
   };
 
   return (
@@ -42,6 +58,7 @@ export function ImportButton({ onImport }: ImportButtonProps) {
         ref={inputRef}
         type="file"
         accept=".json"
+        multiple
         className={styles.hidden}
         onChange={handleFileChange}
       />
