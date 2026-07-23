@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useSearchParams, Link } from 'react-router';
+import { useParams, useNavigate, useSearchParams, useBlocker, Link } from 'react-router';
 import { Home } from 'lucide-react';
+import { ConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog';
 import { useQuizStorage } from '../../hooks/useQuizStorage';
 import { useResultsStorage } from '../../hooks/useResultsStorage';
 import { useFavoritesStorage } from '../../hooks/useFavoritesStorage';
@@ -53,6 +54,12 @@ export function QuizPlayerPage() {
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
   }, [phase]);
+
+  // Confirm before in-app navigation away from an in-progress quiz.
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      phase === 'playing' && currentLocation.pathname !== nextLocation.pathname,
+  );
 
   if (!quiz) {
     return (
@@ -265,6 +272,16 @@ export function QuizPlayerPage() {
             onToggleFavorite={() => toggleFavorite(quiz.id, currentQuestion.id)}
           />
         </>
+      )}
+
+      {blocker.state === 'blocked' && (
+        <ConfirmDialog
+          title="Sair do treino?"
+          message="Você perderá as respostas e o tempo desta sessão."
+          confirmLabel="Sair"
+          onConfirm={() => blocker.proceed()}
+          onCancel={() => blocker.reset()}
+        />
       )}
     </div>
   );

@@ -206,7 +206,7 @@ export function QuestionForm({ question, index, total, onChange, onRemove, onMov
 
       {/* Tags */}
       <div className={styles.field}>
-        <label className={styles.label}>Tópicos (opcional)</label>
+        <label htmlFor={`q-${question.id}-tags`} className={styles.label}>Tópicos (opcional)</label>
         <div className={styles.tagsContainer}>
           {tags.map((tag) => (
             <span key={tag} className={styles.tag}>
@@ -218,6 +218,7 @@ export function QuestionForm({ question, index, total, onChange, onRemove, onMov
             </span>
           ))}
           <input
+            id={`q-${question.id}-tags`}
             className={styles.tagInput}
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
@@ -230,8 +231,9 @@ export function QuestionForm({ question, index, total, onChange, onRemove, onMov
 
       {/* Question text */}
       <div className={styles.field}>
-        <label className={styles.label}>Enunciado</label>
+        <label htmlFor={`q-${question.id}-text`} className={styles.label}>Enunciado</label>
         <textarea
+          id={`q-${question.id}-text`}
           className={styles.textarea}
           value={question.text}
           onChange={(e) => updateField('text', e.target.value)}
@@ -333,8 +335,9 @@ export function QuestionForm({ question, index, total, onChange, onRemove, onMov
 
       {/* General Explanation */}
       <div className={styles.explanationField}>
-        <label className={styles.label}>Explicação geral (opcional)</label>
+        <label htmlFor={`q-${question.id}-explanation`} className={styles.label}>Explicação geral (opcional)</label>
         <textarea
+          id={`q-${question.id}-explanation`}
           className={styles.textarea}
           value={question.explanation || ''}
           onChange={(e) => updateField('explanation', e.target.value)}
